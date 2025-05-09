@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pandas
+google-generativeai
+gspread
+oauth2client
+python-dotenv
+openpyxl
