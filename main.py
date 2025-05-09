@@ -5,6 +5,7 @@ import google.generativeai as genai
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -26,7 +27,9 @@ def carregar_dados_google_sheet():
         'https://spreadsheets.google.com/feeds',
         'https://www.googleapis.com/auth/drive'
     ]
-    credentials = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    cred_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+    cred_dict = json.loads(cred_json)
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict(cred_dict, scope)
     client = gspread.authorize(credentials)
     planilha = client.open("faq")
     aba = planilha.sheet1
