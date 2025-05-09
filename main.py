@@ -21,20 +21,30 @@ model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
 chat = model.start_chat()
 respostas_cache = {}
 
-# Função que carrega os dados da planilha online via Google Sheets
+# Função que carrega os dados da planilha online via variável de ambiente
 def carregar_dados_google_sheet():
     scope = [
         'https://spreadsheets.google.com/feeds',
         'https://www.googleapis.com/auth/drive'
     ]
     cred_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
-    cred_dict = json.loads(cred_json)
-    credentials = ServiceAccountCredentials.from_json_keyfile_dict(cred_dict, scope)
+    if not cred_json:
+        raise ValueError("Variável de ambiente GOOGLE_CREDENTIALS_JSON não definida.")
+    
+    try:
+        cred_dict = json.loads(cred_json)
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(cred_dict, scope)
+    except Exception as e:
+        raise RuntimeError(f"Erro ao carregar credenciais do Google: {e}")
+
     client = gspread.authorize(credentials)
-    planilha = client.open("faq")
-    aba = planilha.sheet1
-    registros = aba.get_all_records()
-    return pd.DataFrame(registros)
+    try:
+        planilha = client.open("faq")
+        aba = planilha.sheet1
+        registros = aba.get_all_records()
+        return pd.DataFrame(registros)
+    except Exception as e:
+        raise RuntimeError(f"Erro ao acessar a planilha 'faq': {e}")
 
 # Função que monta o prompt
 def montar_prompt(pergunta_usuario, df):
